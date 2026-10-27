@@ -1,0 +1,17 @@
+{
+  "name": "pharma-landing-frontend",
+  "version": "1.0.0",
+  "description": "PharmaStor Landing Page — Vite + TypeScript",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}
