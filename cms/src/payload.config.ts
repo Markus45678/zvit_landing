@@ -16,6 +16,13 @@ import { commonEndpoint } from './endpoints/commonEndpoint'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const migrationConnectionString =
+  process.env.PAYLOAD_MIGRATING === 'true'
+    ? process.env.DIRECT_DATABASE_URL ||
+      process.env.DATABASE_URL_UNPOOLED ||
+      process.env.DATABASE_URL
+    : process.env.DATABASE_URL
+
 
 export default buildConfig({
   admin: {
@@ -43,12 +50,9 @@ export default buildConfig({
   // ─── База даних: PostgreSQL (Neon) ─────────────────────────────────────────
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URL,
+      connectionString: migrationConnectionString,
     },
-    // Для міграцій через `payload migrate` використовуємо Direct connection
-    ...(process.env.DIRECT_DATABASE_URL && {
-      migrationDir: path.resolve(dirname, 'migrations'),
-    }),
+    migrationDir: path.resolve(dirname, 'migrations'),
   }),
 
   // ─── Обробка зображень ────────────────────────────────────────────────────
@@ -60,13 +64,13 @@ export default buildConfig({
   },
 
   // ─── CORS ─────────────────────────────────────────────────────────────────
-  cors: [
-    process.env.FRONTEND_URL || 'http://localhost:5173',
-    'https://pharma-landing-frontend.vercel.app',
-  ].filter(Boolean),
+  cors: (process.env.FRONTEND_URL || 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
 
-  csrf: [
-    process.env.FRONTEND_URL || 'http://localhost:5173',
-    'https://pharma-landing-frontend.vercel.app',
-  ].filter(Boolean),
+  csrf: (process.env.FRONTEND_URL || 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
 })
