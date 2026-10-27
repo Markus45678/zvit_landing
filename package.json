@@ -1,0 +1,14 @@
+{
+  "name": "pharma-landing-monorepo",
+  "version": "1.0.0",
+  "description": "PharmaStor Landing Page & Payload CMS v3 Monorepo",
+  "private": true,
+  "scripts": {
+    "dev:cms": "npm --prefix cms run dev",
+    "dev:front": "npm --prefix frontend run dev",
+    "build:cms": "npm --prefix cms run build",
+    "build:front": "npm --prefix frontend run build",
+    "seed": "npm --prefix cms run seed",
+    "install:all": "npm --prefix cms install --legacy-peer-deps && npm --prefix frontend install"
+  }
+}
