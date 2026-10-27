@@ -6,11 +6,12 @@ node_modules/
 .env.*
 !.env.example
 
-# Build outputs
-dist/
-.vite/
-.next/
-build/
+# Build outputs and local platform config
+**/dist/
+**/.vite/
+**/.next/
+**/.vercel/
+**/build/
 
 # Logs
 *.log
@@ -20,9 +21,13 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Editor
+# Editors and local agent tooling
 .vscode/
 .idea/
+.agents/
+**/skills-lock.json
 
-# Payload CMS
+# Payload generated types
 cms/src/payload-types.ts
+
+*.tsbuildinfo
