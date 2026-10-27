@@ -11,7 +11,8 @@
 ```
 pharma-landing/
 ├── package.json              # Скрипти верхнього рівня для монорепо
-├── vercel.json               # Конфігурація Vercel (маршрутизація CMS та фронтенду)
+├── cms/vercel.json          # Налаштування Vercel для Payload CMS
+├── frontend/vercel.json     # Налаштування Vercel для Vite (dist)
 ├── .gitignore                # Правила ігнорування git (.env, node_modules, dist тощо)
 │
 ├── cms/                      # ⚙️ Payload CMS v3 (Next.js 15 App Router runtime)
@@ -187,17 +188,35 @@ npm run dev
 
 ## ☁️ Деплой на Vercel
 
-У корені проєкту налаштовано файл `vercel.json`:
-- Будує `cms` як серверний додаток Next.js (`@vercel/next`).
-- Будує `frontend` як статичний Vite білд (`dist`).
-- Маршрутизує запити `/api/*` та `/admin` на CMS, а всі інші запити — на статичний фронтенд.
+Репозиторій підключений як два окремі Vercel-проєкти з Git-інтеграцією:
 
-### Кроки деплою:
-1. Запушіть репозиторій на GitHub.
-2. Підключіть репозиторій у [vercel.com](https://vercel.com).
-3. Додайте Environment Variables у налаштуваннях проєкту на Vercel:
-   - `DATABASE_URL` = Ваш Neon Pooled connection string
-   - `DIRECT_DATABASE_URL` = Ваш Neon Direct connection string
-   - `PAYLOAD_SECRET` = Ваш згенерований секретний ключ
-   - `FRONTEND_URL` = URL вашого задеплоєного Vercel проєкту
-4. Запустіть Deploy.
+- **CMS**: Root Directory `cms`, Next.js; конфігурація — `cms/vercel.json`.
+- **Frontend**: Root Directory `frontend`, Vite, Output Directory `dist`; конфігурація — `frontend/vercel.json`.
+
+У корені немає спільного `vercel.json`: кожен проєкт збирається окремо. Фронтенд звертається до CMS через `VITE_API_URL`. Деплой фронтенду не маршрутизує `/api` до CMS автоматично.
+
+### Змінні Vercel
+
+У проєкті **CMS** (Production і Preview) потрібні:
+
+- `DATABASE_URL` — pooled URL від Neon для runtime. Vercel Marketplace створює її автоматично.
+- `DATABASE_URL_UNPOOLED` — direct URL від Neon, використовується під час міграцій.
+- `PAYLOAD_SECRET` — довгий випадковий секрет.
+- `FRONTEND_URL` — дозволені origin через кому, наприклад `https://frontend-git-main-markus45678.vercel.app,http://localhost:5173`.
+
+У проєкті **Frontend** (Production і Preview):
+
+- `VITE_API_URL` — origin CMS, наприклад `https://zvit-landingback-git-main-markus45678.vercel.app`.
+
+`PAYLOAD_SECRET` не має префікса `NEXT_PUBLIC_`. Не комітьте `.env`-файли. CLI Vercel може приховувати інтеграційні secrets; для локальної CMS скопіюйте pooled і unpooled URL з Neon Connection Details у `cms/.env` за шаблоном `cms/.env.example`.
+
+### Початкова схема Neon
+
+Для нової бази Payload потрібна початкова міграція. Із каталогу `cms` та з доступними Neon connection strings виконайте:
+
+```bash
+npm run migrate:create -- --skip-empty
+npm run migrate
+```
+
+Скрипти міграцій використовують direct URL (`DATABASE_URL_UNPOOLED`, або локальний `DIRECT_DATABASE_URL`), а CMS runtime — pooled `DATABASE_URL`. Після міграції заповніть CMS демо-контентом командою `npm run seed` або створіть сторінку та Globals через `/admin`.
